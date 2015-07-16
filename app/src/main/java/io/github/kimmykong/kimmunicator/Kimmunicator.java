@@ -31,8 +31,10 @@ import android.os.Message;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.Time;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
+import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
 import java.util.TimeZone;
@@ -88,6 +90,8 @@ public class Kimmunicator extends CanvasWatchFaceService {
         float mXOffset;
         float mYOffset;
 
+        private TextView mBattery;
+
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
          * disable anti-aliasing in ambient mode.
@@ -116,6 +120,9 @@ public class Kimmunicator extends CanvasWatchFaceService {
             mDatePaint = createTextPaint(resources.getColor(R.color.date_text));
 
             mTime = new Time();
+
+
+
         }
 
         @Override
@@ -231,9 +238,13 @@ public class Kimmunicator extends CanvasWatchFaceService {
             String date= Integer.toString(mTime.weekDay);
 
             mXOffset = computeXOffset(time, mTextPaint, bounds);
-            mYOffset= computeTimeYOffset(time, mTextPaint, bounds);
+//            mYOffset= computeTimeYOffset(time, mTextPaint, bounds);
+
+            mYOffset= bounds.exactCenterY();
 
             canvas.drawText(time, mXOffset, mYOffset, mTextPaint);
+
+
 
             String dayOfWeek;
             if (mTime.weekDay==0){
@@ -283,7 +294,8 @@ public class Kimmunicator extends CanvasWatchFaceService {
             String dateText = String.format("%s %02d %s %d", dayOfWeek, mTime.monthDay, month, mTime.year);
             float dateXOffset = computeXOffset(dateText, mDatePaint, bounds);
             float dateYOffset = computeDateYOffset(dateText, mDatePaint);
-            canvas.drawText(dateText, dateXOffset, mXOffset + dateYOffset, mDatePaint);
+            dateYOffset=3*getDateHeight(dateText,mDatePaint)+mYOffset;
+            canvas.drawText(dateText, dateXOffset, dateYOffset, mDatePaint);
 
         }
 
@@ -298,13 +310,32 @@ public class Kimmunicator extends CanvasWatchFaceService {
             Rect textBounds = new Rect();
             timePaint.getTextBounds(timeText, 0, timeText.length(), textBounds);
             int textHeight = textBounds.height();
-            return centerY + (textHeight / 2.0f);
+
+            return centerY + textHeight;
+        }
+
+
+        private float getTimeHeight(String timeText, Paint timePaint, Rect watchBounds) {
+            float centerY = watchBounds.exactCenterY();
+            Rect textBounds = new Rect();
+            timePaint.getTextBounds(timeText, 0, timeText.length(), textBounds);
+            int textHeight = textBounds.height();
+
+            return textHeight;
         }
 
         private float computeDateYOffset(String dateText, Paint datePaint) {
             Rect textBounds = new Rect();
             datePaint.getTextBounds(dateText, 0, dateText.length(), textBounds);
+            Log.d("TAG", "textBounds is " + String.valueOf(textBounds.height()));
             return textBounds.height() + 175.0f;
+        }
+
+        private float getDateHeight(String dateText, Paint datePaint) {
+            Rect textBounds = new Rect();
+            datePaint.getTextBounds(dateText, 0, dateText.length(), textBounds);
+//            Log.d("TAG", "textBounds is " + String.valueOf(textBounds.height()));
+            return textBounds.height();
         }
 
 
